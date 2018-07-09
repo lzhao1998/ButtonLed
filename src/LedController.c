@@ -25,89 +25,91 @@ void doLedForever()
 
 void tapTurnOnTapTurnOffLed(LedButtonInfo *info)
 {
-  /*
-  LedState    ButtonState     LedOutput
-    0             0               0
-    0             1               1
-    1             0               0
-    1             1               1
-
-    if(info->currentLedState == 0 && info->currentButtonState == 0)
-    {
-      info->currentLedState = info->currentLedState;
-    }
-    else if(info->currentLedState == 0 && info->currentButtonState == 1)
-    {
-      info->currentLedState = 1;
-    }
-    else if(info->currentLedState == 1 && info->currentButtonState == 0)
-    {
-      info->currentLedState = 0;
-    }
-    else
-    {
-      info->currentLedState = info->currentLedState;
-    }*/
-/*
-/*    LedState    ButtonState   PreviousButton   LedOutput
-      0             0               0              0
-      0             0               1           (wont happen)0
-      0             1               0              1
-      0             1               1              1
-      1             0               0              0
-      1             0               1              1
-      1             1               0           (wont happen)1
-      1             1               1              1
+/*    LedState  currentButtonState   PreviousButton   LedOutput
+      0                 0                 0              0
+      0                 0                 1              0
+      0                 1                 0              1       ------\
+      0                 1                 1              0               010 and 101 is the major problem
+      1                 0                 0              1
+      1                 0                 1              0        -----/
+      1                 1                 0              1
+      1                 1                 1              1
   */
-  info->currentButtonState = getButtonState();
-  int i,j,k,ans;
-  i = info->currentLedState;
-  j = info->currentButtonState;
-  k = info->previousButtonState;
-  ans = j + (i * k);
-  info->currentLedState = ans;
-  info->previousButtonState =info->currentButtonState;
-  /*switch(info->currentLedState)
+  ButtonState currentButtonState;
+  currentButtonState = getButtonState();
+  /*if(info->currentLedState == LED_OFF)  // when LED is off
   {
-    case 0:
-      if(info->currentButtonState == 0 && info->previousButtonState == 0)
-      {
-        info->currentLedState = 0;
-        info->previousButtonState = 0;
-      }
-      else if(info->currentButtonState == 0 && info->previousButtonState == 1)
-      {
-        info->currentLedState = 0;
-        info->previousButtonState = 0;
-      }
-      else
-      {
-        info->currentLedState = 1;
-        info->previousButtonState = 1;
-      }
-      break;
-    case 1:
-      if(info->currentButtonState == 0 && info->previousButtonState == 0)
-      {
-        info->currentLedState = 0;
-        info->previousButtonState = 0;
-      }
-      else if(info->currentButtonState == 0 && info->previousButtonState == 1)
-      {
-        info->currentLedState = 1;
-        info->previousButtonState = 0;
-      }
-      else
-      {
-        info->currentLedState = 1;
-        info->previousButtonState = 1;
-      }
-      break;
-    default:
-      info->currentLedState = info->currentLedState;
-      info->previousButtonState = info->previousButtonState;
-      break;
+    //when button is press and previos button is released, turn on LED
+    if(currentButtonState == BUTTON_PRESSED && info->previousButtonState == BUTTON_RELEASED)
+    {
+      info->currentLedState = LED_ON;
+      turnLed(info->currentLedState);
+      info->previousButtonState = currentButtonState;
+    }
+    else     //current button is released
+    {
+      info->previousButtonState = currentButtonState;
+    }
+  }
+  else      //when button is released
+  {
+    //when button is released and previous button is press, turn off LED
+    if(currentButtonState == BUTTON_RELEASED && info->previousButtonState == BUTTON_PRESSED)
+    {
+      info->currentLedState = LED_OFF;
+      turnLed(info->currentLedState);
+      info->previousButtonState = currentButtonState;
+    }
+    else     //current button is released
+    {
+      info->previousButtonState = currentButtonState;
+    }
   }*/
+  switch(info->currentLedState)
+  {
+    case 0:                                                    //When LED is OFF
+      switch(currentButtonState)                              //When currentState = 1, previousState = 0  -> TURN ON LED
+      {
+        case 1:
+          switch(info->previousButtonState)
+          {
+            case 0:
+              info->currentLedState = LED_ON;
+              turnLed(info->currentLedState);
+              info->previousButtonState = currentButtonState;
+              break;
+            default:
+              info->previousButtonState = currentButtonState;
+              break;
+          }
+        default:
+          info->previousButtonState = currentButtonState;
+          break;
+      }
+      break;
+    case 1:                                                   //When LED is ON
+      switch(currentButtonState)                              //When currentState = 0, previousState = 1 -> TURN OFF LED
+      {
+        case 0:
+          switch(info->previousButtonState)
+          {
+            case 1:
+              info->currentLedState = LED_OFF;
+              turnLed(info->currentLedState);
+              info->previousButtonState = currentButtonState;
+              break;
+            default:
+              info->previousButtonState = currentButtonState;
+              break;
+          }
+        default:
+          info->previousButtonState = currentButtonState;
+          break;
+      }
+    default:
+      info->previousButtonState = currentButtonState;
+      break;
+  }
 }
 
 void doTapTapLedController()

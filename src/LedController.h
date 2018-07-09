@@ -7,7 +7,6 @@
 typedef struct LedButtonInfo LedButtonInfo;
 struct LedButtonInfo{
   LedState currentLedState;
-  ButtonState currentButtonState;
   ButtonState previousButtonState;
 };
 
